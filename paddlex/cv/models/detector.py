@@ -1742,6 +1742,10 @@ class PPYOLOTiny(YOLOv3):
         return self._define_input_spec(image_shape)
 
 
+vimport paddle
+import paddle.nn as nn
+import paddle.vision.models as models
+
 class PPYOLOv2(YOLOv3):
     def __init__(self,
                  num_classes=80,
@@ -1762,6 +1766,7 @@ class PPYOLOv2(YOLOv3):
                  nms_keep_topk=100,
                  nms_iou_threshold=0.45,
                  **params):
+        
         self.init_params = locals()
         if backbone not in {'ResNet50_vd_dcn', 'ResNet101_vd_dcn'}:
             raise ValueError(
@@ -1771,11 +1776,7 @@ class PPYOLOv2(YOLOv3):
         self.downsample_ratios = [32, 16, 8]
 
         if params.get('with_net', True):
-            if paddlex.env_info['place'] == 'gpu' and paddlex.env_info[
-                    'num'] > 1 and not os.environ.get('PADDLEX_EXPORT_STAGE'):
-                norm_type = 'sync_bn'
-            else:
-                norm_type = 'bn'
+            norm_type = 'sync_bn' if paddlex.env_info['place'] == 'gpu' and paddlex.env_info['num'] > 1 and not os.environ.get('PADDLEX_EXPORT_STAGE') else 'bn'
 
             if backbone == 'ResNet50_vd_dcn':
                 backbone = self._get_backbone(
@@ -1859,7 +1860,7 @@ class PPYOLOv2(YOLOv3):
                 'post_process': post_process
             })
 
-        super(YOLOv3, self).__init__(
+        super().__init__(
             model_name='YOLOv3', num_classes=num_classes, **params)
         self.anchors = anchors
         self.anchor_masks = anchor_masks
@@ -1887,6 +1888,7 @@ class PPYOLOv2(YOLOv3):
 
         self.fixed_input_shape = image_shape
         return self._define_input_spec(image_shape)
+
 
 
 class MaskRCNN(BaseDetector):
